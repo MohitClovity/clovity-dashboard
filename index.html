@@ -1,0 +1,1938 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clovity Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+      /* ── RESET & VARIABLES ── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg-base: #f5f6f8;
+        --bg-surface: #ffffff;
+        --bg-nav: #1a1d23;
+        --txt-primary: #0f1117;
+        --txt-muted: #6b7280;
+        --border-light: #e5e7eb;
+        --border-faint: #f0f1f3;
+        --accent: #378add;
+      }
+
+      [data-theme="dark"] {
+        --bg-base: #0f1117;
+        --bg-surface: #1a1d23;
+        --bg-nav: #111318;
+        --txt-primary: #f0f1f3;
+        --txt-muted: #9ca3af;
+        --border-light: #2d3139;
+        --border-faint: #1e2128;
+      }
+
+      body {
+        min-height: 100vh;
+        background: var(--bg-base);
+        color: var(--txt-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+      }
+
+      /* ── LOGIN OVERLAY ── */
+      #login-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-base);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .login-box {
+        background: var(--bg-surface);
+        padding: 40px;
+        border-radius: 14px;
+        border: 1px solid var(--border-light);
+        text-align: center;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 360px;
+      }
+
+      .login-logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(55, 138, 221, 0.13);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+      }
+
+      .login-box h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .login-box p {
+        font-size: 13px;
+        color: var(--txt-muted);
+        margin-bottom: 20px;
+      }
+
+      .login-box input[type="text"],
+      .login-box input[type="password"] {
+        width: 100%;
+        padding: 11px 14px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        background: var(--bg-base);
+        color: var(--txt-primary);
+        font-size: 14px;
+        transition: border-color 0.15s;
+      }
+
+      .login-box input:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+
+      .login-box button.sign-in-btn {
+        width: 100%;
+        padding: 11px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .login-box button.sign-in-btn:hover {
+        opacity: 0.88;
+      }
+      .login-box button.sign-in-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      #login-error {
+        color: #e24b4a;
+        font-size: 12px;
+        margin-top: 10px;
+        display: none;
+      }
+      #login-loading {
+        color: var(--txt-muted);
+        font-size: 12px;
+        margin-top: 10px;
+        display: none;
+      }
+
+      .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── SETUP NOTICE ── */
+      #setup-notice {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 16px;
+        text-align: left;
+        font-size: 12px;
+        color: #92400e;
+        display: none;
+      }
+      #setup-notice strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12.5px;
+      }
+
+      /* ── TOP HEADER ── */
+      .top-header {
+        background: var(--bg-nav);
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 52px;
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      .top-header-title {
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .top-header-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+      }
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .hdr-btn {
+        background: transparent;
+        border: 0.5px solid rgba(255, 255, 255, 0.2);
+        border-radius: 7px;
+        color: rgba(255, 255, 255, 0.6);
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+      .hdr-btn:hover {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+      .hdr-btn.logout {
+        border-color: rgba(226, 75, 74, 0.5);
+        color: rgba(226, 75, 74, 0.85);
+      }
+      .hdr-btn.logout:hover {
+        border-color: #e24b4a;
+        color: #e24b4a;
+      }
+
+      /* ── OVERVIEW STRIP ── */
+      .overview-strip {
+        background: var(--bg-surface);
+        border-bottom: 1.5px solid var(--border-light);
+        padding: 16px 24px 14px;
+      }
+      .overview-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .page-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .page-subtitle {
+        font-size: 12px;
+        color: var(--txt-muted);
+        margin-top: 2px;
+      }
+
+      /* ── METRICS ── */
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .metric {
+        background: var(--bg-base);
+        border: 0.5px solid var(--border-light);
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+      .metric-label {
+        font-size: 11px;
+        color: var(--txt-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+      }
+      .metric-value {
+        font-size: 24px;
+        font-weight: 600;
+        line-height: 1;
+      }
+      .metric-sub {
+        font-size: 11px;
+        color: var(--txt-muted);
+        margin-top: 4px;
+      }
+
+      /* ── TAB SWITCHER ── */
+      .tab-switcher {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: var(--bg-surface);
+        border-bottom: 1.5px solid var(--border-light);
+        position: sticky;
+        top: 52px;
+        z-index: 100;
+      }
+      .tab-btn {
+        padding: 14px 0;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--txt-muted);
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        border-bottom: 3px solid transparent;
+        transition:
+          color 0.15s,
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .tab-btn:hover {
+        color: var(--txt-primary);
+        background: var(--bg-base);
+      }
+      .tab-btn.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+        background: transparent;
+      }
+
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* ── MAIN CONTENT ── */
+      .main-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 24px;
+      }
+
+      /* ── FILTERS ── */
+      .section-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .filters {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .filter-label {
+        font-size: 11px;
+        color: var(--txt-muted);
+        font-weight: 500;
+      }
+      .filters select,
+      input[type="text"] {
+        padding: 6px 10px;
+        border: 0.5px solid var(--border-light);
+        border-radius: 6px;
+        background: var(--bg-surface);
+        color: var(--txt-primary);
+        font-size: 12px;
+      }
+
+      /* ── GRID LAYOUTS ── */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .section-gap {
+        margin-top: 18px;
+      }
+
+      /* ── CARDS ── */
+      .card {
+        background: var(--bg-surface);
+        border: 0.5px solid var(--border-light);
+        border-radius: 10px;
+        padding: 14px 16px;
+      }
+      .card-title {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      /* ── LEGEND ── */
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        margin-bottom: 10px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+      }
+      .legend-swatch {
+        width: 9px;
+        height: 9px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+
+      /* ── TABLE ── */
+      .tbl-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      th {
+        text-align: left;
+        padding: 8px 10px;
+        font-size: 11px;
+        color: var(--txt-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border-bottom: 1px solid var(--border-light);
+      }
+      td {
+        padding: 9px 10px;
+        border-bottom: 0.5px solid var(--border-faint);
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover td {
+        background: var(--bg-base);
+      }
+
+      /* ── BADGES ── */
+      .badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 20px;
+        letter-spacing: 0.02em;
+      }
+      .badge-active {
+        background: rgba(29, 158, 117, 0.15);
+        color: #1d9e75;
+      }
+      .badge-inactive {
+        background: rgba(226, 75, 74, 0.13);
+        color: #e24b4a;
+      }
+      .badge-COMMERCIAL,
+      .badge-comm {
+        background: rgba(55, 138, 221, 0.15);
+        color: #378add;
+      }
+      .badge-EVALUATION,
+      .badge-eval {
+        background: rgba(186, 117, 23, 0.14);
+        color: #ba7517;
+      }
+      .badge-FREE,
+      .badge-free {
+        background: rgba(128, 128, 128, 0.13);
+        color: #888780;
+      }
+
+      /* ── PILLS ── */
+      .summary-pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .pill {
+        background: var(--bg-surface);
+        border: 0.5px solid var(--border-light);
+        border-radius: 8px;
+        padding: 9px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 120px;
+      }
+      .pill-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .pill-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+      .pill-count {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .pill-label {
+        font-size: 11px;
+        color: var(--txt-muted);
+      }
+
+      /* ── APP TAGS ── */
+      .app-tag-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .app-tag {
+        font-size: 11px;
+        background: var(--bg-base);
+        border: 0.5px solid var(--border-light);
+        border-radius: 5px;
+        padding: 3px 8px;
+        color: var(--txt-muted);
+      }
+
+      /* ── AGC EMPTY ── */
+      .agc-empty {
+        text-align: center;
+        padding: 80px 24px;
+        color: var(--txt-muted);
+      }
+      .agc-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: rgba(55, 138, 221, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+      }
+      .agc-empty h2 {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--txt-primary);
+        margin-bottom: 8px;
+      }
+      .agc-empty p {
+        font-size: 13px;
+        max-width: 340px;
+        margin: 0 auto;
+      }
+
+      /* ── LOADING OVERLAY ── */
+      #data-loading {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 9000;
+        align-items: center;
+        justify-content: center;
+      }
+      #data-loading.active {
+        display: flex;
+      }
+      .loading-card {
+        background: var(--bg-surface);
+        border-radius: 12px;
+        padding: 28px 36px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+      .loading-card .big-spinner {
+        width: 36px;
+        height: 36px;
+        margin: 0 auto 14px;
+        border: 3px solid var(--border-light);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      .loading-card p {
+        font-size: 13px;
+        color: var(--txt-muted);
+      }
+
+      @media (max-width: 700px) {
+        .metrics {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════════ LOGIN OVERLAY ════════ -->
+    <div id="login-overlay">
+      <div class="login-box">
+        <div class="login-logo">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#378ADD"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <path d="M9 9h6M9 12h6M9 15h4" />
+          </svg>
+        </div>
+        <h2>Clovity Dashboard</h2>
+        <p>Sign in to continue</p>
+
+        <!-- Only shown when GOOGLE_SCRIPT_URL is not configured -->
+        <div id="setup-notice">
+          <strong>⚠️ Setup Required</strong>
+          Open this file, find <code>GOOGLE_SCRIPT_URL</code> near the top of
+          the &lt;script&gt;, and replace it with your Google Apps Script Web
+          App URL. See the comments in the code for full instructions.
+        </div>
+
+        <input
+          type="text"
+          id="user-input"
+          placeholder="Username"
+          autocomplete="username"
+        />
+        <input
+          type="password"
+          id="pass-input"
+          placeholder="Password"
+          autocomplete="current-password"
+        />
+        <button class="sign-in-btn" id="login-btn" onclick="checkPassword()">
+          <span id="btn-text">Sign in</span>
+        </button>
+        <p id="login-error">Invalid username or password.</p>
+        <p id="login-loading">Verifying credentials…</p>
+      </div>
+    </div>
+
+    <!-- ════════ DATA LOADING OVERLAY ════════ -->
+    <div id="data-loading">
+      <div class="loading-card">
+        <div class="big-spinner"></div>
+        <p>Loading dashboard data…</p>
+      </div>
+    </div>
+
+    <!-- ════════ DASHBOARD (hidden until auth) ════════ -->
+    <div id="dashboard-content" style="display: none">
+      <header class="top-header">
+        <div class="top-header-title">
+          <div class="top-header-dot"></div>
+          Clovity Dashboard
+        </div>
+        <div class="header-actions">
+          <button class="hdr-btn" id="themeBtn">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <circle cx="8" cy="8" r="3" />
+              <path
+                d="M8 1v2M8 13v2M1 8h2M13 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4"
+              />
+            </svg>
+            <span>Toggle theme</span>
+          </button>
+          <div
+            id="hdr-username"
+            style="display: flex; align-items: center; gap: 6px"
+          ></div>
+          <button class="hdr-btn logout" onclick="logout()">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="overview-strip">
+        <div class="overview-inner">
+          <h2 class="page-title" style="margin-bottom: 12px">
+            Summary Metrics
+          </h2>
+          <div class="metrics" id="ov-metrics"></div>
+          <div class="metrics" id="ov-metrics2"></div>
+        </div>
+      </section>
+
+      <div class="tab-switcher">
+        <button
+          class="tab-btn active"
+          id="tab-cloud"
+          onclick="switchTab('cloud')"
+        >
+          Cloud
+        </button>
+        <button class="tab-btn" id="tab-agc" onclick="switchTab('agc')">
+          AGC
+        </button>
+      </div>
+
+      <!-- ── CLOUD TAB ── -->
+      <div class="tab-panel active" id="panel-cloud">
+        <div class="main-content">
+          <div
+            style="
+              display: flex;
+              align-items: flex-start;
+              justify-content: space-between;
+              flex-wrap: wrap;
+              gap: 10px;
+              margin-bottom: 14px;
+            "
+          >
+            <div>
+              <h1 class="page-title">Overview</h1>
+              <p class="page-subtitle">
+                All-up license health across apps and companies
+              </p>
+            </div>
+            <div class="filters">
+              <span class="filter-label">Type</span>
+              <select id="ov-filterType">
+                <option value="all">All types</option>
+                <option value="EVALUATION">Evaluation</option>
+                <option value="COMMERCIAL">Commercial</option>
+              </select>
+              <span class="filter-label">Status</span>
+              <select id="ov-filterStatus">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2 section-gap">
+            <div class="card">
+              <h3 class="card-title">License type breakdown</h3>
+              <div id="ov-leg-type" class="legend"></div>
+              <div style="position: relative; height: 150px">
+                <canvas id="ov-typeChart"></canvas>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">Status distribution</h3>
+              <div id="ov-leg-status" class="legend"></div>
+              <div style="position: relative; height: 150px">
+                <canvas id="ov-statusChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2 section-gap">
+            <div class="card">
+              <h3 class="card-title">Jira vs Confluence</h3>
+              <div id="ov-leg-prod" class="legend"></div>
+              <div style="position: relative; height: 150px">
+                <canvas id="ov-prodChart"></canvas>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">Licenses by app</h3>
+              <div id="ov-leg-app" class="legend"></div>
+              <div style="position: relative; height: 150px">
+                <canvas id="ov-appChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="card-title" style="margin: 1.25rem 0 0.6rem">
+            Active and Inactive — Organic Users
+          </h3>
+          <div class="grid-2 section-gap">
+            <div class="card">
+              <h3 class="card-title" id="active-title">Active Licenses</h3>
+              <div id="ov-leg-s2active" class="legend"></div>
+              <div style="position: relative; height: 200px">
+                <canvas id="ov-s2activeChart"></canvas>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title" id="inactive-title">Inactive Licenses</h3>
+              <div id="ov-leg-s2inactive" class="legend"></div>
+              <div style="position: relative; height: 200px">
+                <canvas id="ov-s2inactiveChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card section-gap">
+            <h3 class="card-title" style="margin-bottom: 0.75rem">
+              Active Users — Detail
+            </h3>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>App</th>
+                    <th>Company</th>
+                    <th>Type</th>
+                    <th>Tier</th>
+                    <th>Product</th>
+                    <th>Edition</th>
+                  </tr>
+                </thead>
+                <tbody id="s2-active-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card section-gap">
+            <h3 class="card-title" style="margin-bottom: 0.75rem">
+              Inactive Users — Detail
+            </h3>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>App</th>
+                    <th>Company</th>
+                    <th>Type</th>
+                    <th>Tier</th>
+                    <th>Product</th>
+                    <th>Edition</th>
+                  </tr>
+                </thead>
+                <tbody id="s2-inactive-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section-header" style="margin-top: 18px">
+            <div>
+              <h1 class="page-title">Analytics</h1>
+              <p class="page-subtitle">
+                Per-app, billing cycle and Cloud app breakdown
+              </p>
+            </div>
+            <div class="filters">
+              <span class="filter-label">Product</span>
+              <select id="an-filterProd">
+                <option value="all">All products</option>
+                <option value="Jira">Jira</option>
+                <option value="Confluence">Confluence</option>
+              </select>
+              <span class="filter-label">App</span>
+              <select id="an-filterApp">
+                <option value="all">All</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="metrics section-gap" id="an-metrics"></div>
+          <div class="summary-pills" id="an-cloud-pills"></div>
+
+          <div class="grid-2 section-gap">
+            <div class="card">
+              <h3 class="card-title">Cloud apps — license count</h3>
+              <p
+                style="
+                  font-size: 11.5px;
+                  color: var(--txt-muted);
+                  margin-bottom: 8px;
+                "
+              >
+                Each bar = total licenses for that cloud app
+              </p>
+              <div id="an-leg-cloud" class="legend"></div>
+              <div style="position: relative" id="an-cloudWrap">
+                <canvas id="an-cloudChart"></canvas>
+              </div>
+              <div
+                style="
+                  margin-top: 12px;
+                  border-top: 0.5px solid var(--border-faint);
+                  padding-top: 10px;
+                "
+              >
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 500;
+                    color: var(--txt-muted);
+                    text-transform: uppercase;
+                    letter-spacing: 0.04em;
+                    margin-bottom: 6px;
+                  "
+                >
+                  Cloud apps
+                </div>
+                <div class="app-tag-grid" id="an-cloud-app-tags"></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3 class="card-title">Parent product edition</h3>
+              <div id="an-leg-edition" class="legend"></div>
+              <div style="position: relative; height: 200px">
+                <canvas id="an-editionChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card section-gap">
+            <h3 class="card-title" style="margin-bottom: 0.6rem">
+              All licenses — filterable table
+            </h3>
+            <div style="margin-bottom: 0.75rem">
+              <input
+                type="text"
+                id="an-tableSearch"
+                placeholder="Search company or app…"
+                style="width: 100%; max-width: 280px"
+              />
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Company</th>
+                    <th>App</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Product</th>
+                    <th>Edition</th>
+                  </tr>
+                </thead>
+                <tbody id="an-licTbody"></tbody>
+              </table>
+            </div>
+            <p
+              id="an-tableCount"
+              style="
+                font-size: 11px;
+                color: var(--txt-muted);
+                margin-top: 0.5rem;
+              "
+            ></p>
+          </div>
+
+          <div class="card section-gap">
+            <h3 class="card-title" style="margin-bottom: 0.6rem">
+              Churned Customers
+            </h3>
+            <div style="margin-bottom: 0.75rem">
+              <input
+                type="text"
+                id="an-tableSearch2"
+                placeholder="Search company or app…"
+                style="width: 100%; max-width: 280px"
+              />
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>App Name</th>
+                    <th>Company</th>
+                    <th>Country</th>
+                    <th>Technical Contact</th>
+                    <th>Cloudsite Hostname</th>
+                    <th>Start Date</th>
+                  </tr>
+                </thead>
+                <tbody id="an-churnTbody"></tbody>
+              </table>
+            </div>
+            <p
+              id="an-churnTableCount"
+              style="
+                font-size: 11px;
+                color: var(--txt-muted);
+                margin-top: 0.5rem;
+              "
+            ></p>
+          </div>
+        </div>
+      </div>
+      <!-- /panel-cloud -->
+
+      <!-- ── AGC TAB ── -->
+      <div class="tab-panel" id="panel-agc">
+        <div class="agc-empty">
+          <div class="agc-icon">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#378ADD"
+              stroke-width="1.8"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="3" />
+              <path d="M9 9h6M9 12h6M9 15h4" />
+            </svg>
+          </div>
+          <h2>AGC Data</h2>
+          <p>AGC-related overview, analytics, and trends will appear here.</p>
+        </div>
+      </div>
+    </div>
+    <!-- /dashboard-content -->
+
+    <script>
+      /* =============================================================
+     ██████╗  ██████╗  ██████╗ ██████╗ ██╗     ███████╗
+     ██╔════╝ ██╔═══██╗██╔═══██╗██╔════╝ ██║     ██╔════╝
+     ██║  ███╗██║   ██║██║   ██║██║  ███╗██║     █████╗
+     ██║   ██║██║   ██║██║   ██║██║   ██║██║     ██╔══╝
+     ╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝███████╗███████╗
+
+     HOW THIS WORKS:
+     ═══════════════
+     ① Credentials and data live in Google Sheets (NOT here)
+     ② On login, this page calls your Google Apps Script Web App
+     ③ Apps Script checks credentials in Sheet "Users" tab
+     ④ If valid, it returns the dashboard data from Sheet "Data" tab
+     ⑤ Data is only loaded AFTER login — nothing is visible in source
+
+     SETUP STEPS:
+     ════════════
+     STEP 1 — Create a Google Sheet with two tabs:
+
+       Tab 1: "Users"
+       ┌───────────┬──────────────────┬───────────────┬────────┐
+       │ username  │ password         │ name          │ role   │
+       ├───────────┼──────────────────┼───────────────┼────────┤
+       │ admin     │ ClovityAdmin2026 │ Clovity Admin │ admin  │
+       │ john.doe  │ JohnPass@123     │ John Doe      │ viewer │
+       └───────────┴──────────────────┴───────────────┴────────┘
+
+       Tab 2: "Rows" (your main license data)
+       Columns: company, label, product, edition, billing,
+                licType, status, region, country, tier
+
+       Tab 3: "ActiveUsers"
+       Columns: app, company, licType, tier, product, edition
+
+       Tab 4: "InactiveUsers"
+       Columns: app, company, licType, tier, product, edition
+
+       Tab 5: "ChurnedCustomers"
+       Columns: appName, company, country, technicalContact,
+                cloudSiteHostname, startDate
+
+     STEP 2 — Create a Google Apps Script:
+       • Open your Google Sheet → Extensions → Apps Script
+       • Paste the code from the APPS SCRIPT SECTION below
+       • Click Deploy → New Deployment
+       • Type: Web App
+       • Execute as: Me
+       • Who has access: Anyone
+       • Copy the Web App URL
+
+     STEP 3 — Paste your URL below:
+  ============================================================= */
+
+      const GOOGLE_SCRIPT_URL ="https://script.google.com/macros/s/AKfycbwuMM_D7MIR4P05VHav4r0hDg-0ScqxOdsM28RHctiRZIzIk6xCUl9JvtL00PpvQV8w/exec";
+
+      /*
+  ================================================================
+     GOOGLE APPS SCRIPT CODE
+     (Copy this into your Apps Script editor)
+  ================================================================
+
+  function doPost(e) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet();
+    const body  = JSON.parse(e.postData.contents);
+    const resp  = ContentService.createTextOutput();
+    resp.setMimeType(ContentService.MimeType.JSON);
+
+    try {
+      if (body.action === 'login') {
+        const usersSheet = sheet.getSheetByName('Users');
+        const rows = usersSheet.getDataRange().getValues();
+        const headers = rows[0].map(h => h.toString().toLowerCase().trim());
+        const uIdx = headers.indexOf('username');
+        const pIdx = headers.indexOf('password');
+        const nIdx = headers.indexOf('name');
+        const rIdx = headers.indexOf('role');
+
+        const match = rows.slice(1).find(r =>
+          r[uIdx] === body.username && r[pIdx] === body.password
+        );
+
+        if (!match) {
+          resp.setContent(JSON.stringify({ success: false }));
+          return resp;
+        }
+
+        // Auth passed — now load all data
+        const data = {
+          user: { name: match[nIdx], role: match[rIdx] },
+          rows:             sheetToObjects(sheet, 'Licenses'),
+          activeUsers:      sheetToObjects(sheet, 'ActiveUsers'),
+          inactiveUsers:    sheetToObjects(sheet, 'InactiveUsers'),
+          churnedCustomers: sheetToObjects(sheet, 'ChurnedCustomers')
+        };
+
+        resp.setContent(JSON.stringify({ success: true, data }));
+        return resp;
+      }
+    } catch(err) {
+      resp.setContent(JSON.stringify({ success: false, error: err.message }));
+      return resp;
+    }
+  }
+
+  function sheetToObjects(spreadsheet, sheetName) {
+    const s = spreadsheet.getSheetByName(sheetName);
+    if (!s) return [];
+    const vals = s.getDataRange().getValues();
+    if (vals.length < 2) return [];
+    const headers = vals[0].map(h => h.toString().trim());
+    return vals.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i].toString() : ''; });
+      return obj;
+    });
+  }
+
+  // Required — handles CORS preflight
+  function doGet(e) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'ok' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  ================================================================
+  */
+
+      let APP_DATA = null; // filled only AFTER successful login
+      let allCharts = {};
+
+      const SHORT_NAMES = {
+        "Content Formatting Macros: Tabs Navigation Visibility CSS":"Content Formatting Macros",
+        "Dashboard Templates, Charts, Graphs & Reports for Jira":"Dashboard Templates",
+        "Reports, Charts, Templates,CQL & Export for Confluence":"Reports, Charts & CQL",
+        "Time Tracking, Resource Planning & Project Management":"Time Tracking",
+      };
+      const sn = (n) => SHORT_NAMES[n] || n;
+      const COLORS = [
+        "#378ADD",
+        "#7F77DD",
+        "#1D9E75",
+        "#E24B4A",
+      ];
+
+      /* ─────────────────────────────────────────────
+     STARTUP — check if URL is configured
+  ───────────────────────────────────────────── */
+      window.addEventListener("load", () => {
+        // URL is configured - setup notice hidden
+
+        if (sessionStorage.getItem("isAuthorized") === "true") {
+          const cached = sessionStorage.getItem("dashData");
+          if (cached) {
+            APP_DATA = JSON.parse(cached);
+            showDashboard(
+              sessionStorage.getItem("loggedInName"),
+              sessionStorage.getItem("loggedInRole"),
+            );
+          } else {
+            sessionStorage.clear();
+          }
+        }
+
+        ["user-input", "pass-input"].forEach((id) => {
+          document.getElementById(id).addEventListener("keypress", (e) => {
+            if (e.key === "Enter") checkPassword();
+          });
+        });
+      });
+
+      /* ─────────────────────────────────────────────
+     AUTH — login calls Google Apps Script
+     Credentials are NEVER stored in this file
+  ───────────────────────────────────────────── */
+      async function checkPassword() {
+        const username = document.getElementById("user-input").value.trim();
+        const password = document.getElementById("pass-input").value;
+        const errEl = document.getElementById("login-error");
+        const loadEl = document.getElementById("login-loading");
+        const btn = document.getElementById("login-btn");
+        const btnText = document.getElementById("btn-text");
+
+        if (!username || !password) {
+          errEl.textContent = "Please enter username and password.";
+          errEl.style.display = "block";
+          return;
+        }
+
+        // UI: show loading state
+        errEl.style.display = "none";
+        loadEl.style.display = "block";
+        btn.disabled = true;
+        btnText.textContent = "";
+        btn.innerHTML = '<div class="spinner"></div><span>Signing in…</span>';
+
+        try {
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            // ✅ No Content-Type header — avoids CORS preflight on Netlify
+            body: JSON.stringify({ action: "login", username, password }),
+          });
+
+          if (!response.ok) throw new Error("Network error");
+          const result = await response.json();
+
+          if (result.success) {
+            // Store session (data in sessionStorage — clears when tab closes)
+            sessionStorage.setItem("isAuthorized", "true");
+            sessionStorage.setItem("loggedInName", result.data.user.name);
+            sessionStorage.setItem("loggedInRole", result.data.user.role);
+            sessionStorage.setItem("dashData", JSON.stringify(result.data));
+
+            APP_DATA = result.data;
+            loadEl.style.display = "none";
+            showDashboard(result.data.user.name, result.data.user.role);
+          } else {
+            throw new Error("invalid");
+          }
+        } catch (err) {
+          loadEl.style.display = "none";
+          btn.disabled = false;
+          btn.innerHTML = '<span id="btn-text">Sign in</span>';
+
+          if (err.message === "invalid") {
+            errEl.textContent = "Invalid username or password.";
+          } else {
+            errEl.textContent =
+              "Could not reach server. Check your Apps Script URL.";
+          }
+          errEl.style.display = "block";
+          document.getElementById("pass-input").value = "";
+          document.getElementById("pass-input").focus();
+        }
+      }
+
+      function logout() {
+        sessionStorage.clear();
+        APP_DATA = null;
+        location.reload();
+      }
+
+      /* ─────────────────────────────────────────────
+     SHOW DASHBOARD
+  ───────────────────────────────────────────── */
+      function showDashboard(name, role) {
+        document.getElementById("login-overlay").style.display = "none";
+        document.getElementById("dashboard-content").style.display = "block";
+
+        const badge =
+          role === "admin"
+            ? `<span style="font-size:10px;background:rgba(55,138,221,.22);color:#378ADD;padding:2px 7px;border-radius:20px;font-weight:600;">Admin</span>`
+            : `<span style="font-size:10px;background:rgba(29,158,117,.18);color:#1D9E75;padding:2px 7px;border-radius:20px;font-weight:600;">Viewer</span>`;
+        const userEl = document.getElementById("hdr-username");
+        if (userEl)
+          userEl.innerHTML = `<span style="color:rgba(255,255,255,.55);font-size:12px;">${name}</span> ${badge}`;
+
+        bootstrapCharts();
+      }
+
+      /* ─────────────────────────────────────────────
+     HELPERS
+  ───────────────────────────────────────────── */
+      function destroyChart(id) {
+        if (allCharts[id]) {
+          allCharts[id].destroy();
+          delete allCharts[id];
+        }
+      }
+
+      function mkLegend(id, labels, colors) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = labels
+          .filter((l) => l && String(l).trim())
+          .map(
+            (l, i) =>
+              `<span class="legend-item"><span class="legend-swatch" style="background:${colors[i % colors.length]}"></span>${l}</span>`,
+          )
+          .join("");
+      }
+
+      function cnt(rows, key) {
+        return rows.reduce((a, r) => {
+          const v = r[key];
+          if (v && String(v).trim()) a[v] = (a[v] || 0) + 1;
+          return a;
+        }, {});
+      }
+
+      function badgeFor(val, type) {
+        if (type === "status")
+          return `<span class="badge badge-${val}">${val}</span>`;
+        const cls =
+          val === "COMMERCIAL" ? "comm" : val === "FREE" ? "free" : "eval";
+        return `<span class="badge badge-${cls}">${val}</span>`;
+      }
+
+      /* ─────────────────────────────────────────────
+     OVERVIEW METRICS
+  ───────────────────────────────────────────── */
+      function renderOverviewMetrics(rows) {
+        const active = rows.filter(
+          (r) => (r.status || "").toLowerCase() === "active",
+        ).length;
+        document.getElementById("ov-metrics").innerHTML = [
+          ["Total licenses", rows.length, "across all apps"],
+          ["Active licenses", active, "Organic"],
+          ["InActive licenses", rows.length - active, "Organic"],
+          ["AGC", 0, "paid AGC"],
+        ]
+          .map(
+            ([l, v, s]) =>
+              `<div class="metric">
+        <div class="metric-label">${l}</div>
+        <div class="metric-value">${v}</div>
+        <div class="metric-sub">${s}</div>
+      </div>`,
+          )
+          .join("");
+      }
+
+      /* ─────────────────────────────────────────────
+     OVERVIEW CHARTS
+  ───────────────────────────────────────────── */
+      function renderOverviewCharts(rows) {
+        [
+          "ov-typeChart",
+          "ov-statusChart",
+          "ov-prodChart",
+          "ov-appChart",
+        ].forEach(destroyChart);
+
+        const tc = cnt(rows, "licType"),
+          tl = Object.keys(tc),
+          tv = Object.values(tc);
+        const tColors = ["#378ADD", "#BA7517", "#1D9E75", "#E24B4A"];
+        const lm = {
+          EVALUATION: {
+            title: "⏱ Evaluation — Free Trial",
+            lines: [
+              "7 to 30 day trial period",
+              "No payment required",
+              "Company is testing the app",
+              "May convert to paid after trial",
+            ],
+          },
+          COMMERCIAL: {
+            title: "⭐ Commercial — Paid Customer",
+            lines: [
+              "Trial successfully converted to paid",
+              "Active billing subscription",
+              "Billed Monthly or Annually",
+              "Includes maintenance window",
+            ],
+          },
+          FREE: {
+            title: "🆓 Free — No Cost Plan",
+            lines: [
+              "Permanent free tier",
+              "Limited features or users",
+              "No trial expiry",
+              "No billing required",
+            ],
+          },
+        };
+        mkLegend("ov-leg-type", tl, tColors);
+        allCharts["ov-typeChart"] = new Chart(
+          document.getElementById("ov-typeChart"),
+          {
+            type: "doughnut",
+            data: {
+              labels: tl,
+              datasets: [
+                {
+                  data: tv,
+                  backgroundColor: tColors,
+                  borderWidth: 1,
+                  borderColor: "transparent",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "#1A1D23",
+                  titleColor: "#fff",
+                  bodyColor: "rgba(255,255,255,.8)",
+                  borderColor: "rgba(255,255,255,.12)",
+                  borderWidth: 1,
+                  padding: 12,
+                  cornerRadius: 8,
+                  callbacks: {
+                    title: (ctx) => {
+                      const m = lm[(ctx[0].label || "").toUpperCase()];
+                      return m ? m.title : ctx[0].label;
+                    },
+                    label: (ctx) => "  " + ctx.formattedValue + " licenses",
+                    afterLabel: (ctx) => {
+                      const m = lm[(ctx.label || "").toUpperCase()];
+                      return m ? ["", ...m.lines.map((l) => "  • " + l)] : [];
+                    },
+                  },
+                },
+              },
+            },
+          },
+        );
+
+        const sc = cnt(rows, "status"),
+          sl = Object.keys(sc),
+          sv = Object.values(sc);
+        const sColors = sl.map((l) =>
+          l.toLowerCase() === "active" ? "#1D9E75" : "#E24B4A",
+        );
+        mkLegend("ov-leg-status", sl, sColors);
+        allCharts["ov-statusChart"] = new Chart(
+          document.getElementById("ov-statusChart"),
+          {
+            type: "pie",
+            data: {
+              labels: sl,
+              datasets: [
+                {
+                  data: sv,
+                  backgroundColor: sColors,
+                  borderWidth: 1,
+                  borderColor: "transparent",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+            },
+          },
+        );
+
+        const pc = cnt(rows, "product"),
+          pl = Object.keys(pc),
+          pv = Object.values(pc);
+        mkLegend("ov-leg-prod", pl, ["#378ADD", "#7F77DD"]);
+        allCharts["ov-prodChart"] = new Chart(
+          document.getElementById("ov-prodChart"),
+          {
+            type: "doughnut",
+            data: {
+              labels: pl,
+              datasets: [
+                {
+                  data: pv,
+                  backgroundColor: ["#378ADD", "#7F77DD"],
+                  borderWidth: 1,
+                  borderColor: "transparent",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+            },
+          },
+        );
+
+        const ac = {};
+        rows.forEach((r) => {
+          if (r.label && r.label.trim()) ac[r.label] = (ac[r.label] || 0) + 1;
+        });
+        const al = Object.keys(ac).sort((a, b) => ac[b] - ac[a]),
+          av = al.map((k) => ac[k]);
+        mkLegend("ov-leg-app", al.map(sn), COLORS);
+        allCharts["ov-appChart"] = new Chart(
+          document.getElementById("ov-appChart"),
+          {
+            type: "bar",
+            data: {
+              labels: al.map(sn),
+              datasets: [
+                { data: av, backgroundColor: COLORS, borderRadius: 4 },
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: {
+                  grid: { color: "rgba(128,128,128,.1)" },
+                  ticks: { font: { size: 10 } },
+                },
+                y: { ticks: { font: { size: 10 } } },
+              },
+            },
+          },
+        );
+      }
+
+      /* ─────────────────────────────────────────────
+     ORGANIC USERS CHARTS + TABLES
+  ───────────────────────────────────────────── */
+      function renderS2Charts() {
+        ["ov-s2activeChart", "ov-s2inactiveChart"].forEach(destroyChart);
+        const activeUsers = APP_DATA.activeUsers || [];
+        const inactiveUsers = APP_DATA.inactiveUsers || [];
+
+        document.getElementById("active-title").textContent =
+          `Active Licenses (${activeUsers.length})`;
+        document.getElementById("inactive-title").textContent =
+          `Inactive Licenses (${inactiveUsers.length})`;
+
+        const mkMap = (arr) =>
+          arr.reduce((m, r) => {
+            m[r.app] = (m[r.app] || 0) + 1;
+            return m;
+          }, {});
+        const aMap = mkMap(activeUsers),
+          iMap = mkMap(inactiveUsers);
+        const aL = Object.keys(aMap).map(sn),
+          aV = Object.values(aMap);
+        const iL = Object.keys(iMap).map(sn),
+          iV = Object.values(iMap);
+
+        const scales = {
+          x: {
+            grid: { color: "rgba(128,128,128,.08)" },
+            ticks: { font: { size: 10 } },
+          },
+          y: {
+            grid: { color: "rgba(128,128,128,.08)" },
+            ticks: { stepSize: 1 },
+          },
+        };
+
+        mkLegend("ov-leg-s2active", aL, COLORS);
+        mkLegend("ov-leg-s2inactive", iL, COLORS);
+
+        allCharts["ov-s2activeChart"] = new Chart(
+          document.getElementById("ov-s2activeChart"),
+          {
+            type: "bar",
+            data: {
+              labels: aL,
+              datasets: [
+                {
+                  data: aV,
+                  backgroundColor: COLORS.slice(0, aL.length),
+                  borderRadius: 5,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales,
+            },
+          },
+        );
+        allCharts["ov-s2inactiveChart"] = new Chart(
+          document.getElementById("ov-s2inactiveChart"),
+          {
+            type: "bar",
+            data: {
+              labels: iL,
+              datasets: [
+                {
+                  data: iV,
+                  backgroundColor: COLORS.slice(0, iL.length),
+                  borderRadius: 5,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales,
+            },
+          },
+        );
+
+        document.getElementById("s2-active-tbody").innerHTML = activeUsers
+          .map(
+            (r) =>
+              `<tr><td>${sn(r.app)}</td><td>${r.company}</td><td>${badgeFor((r.licType || "").toUpperCase(), "licType")}</td><td>${r.tier}</td><td>${r.product}</td><td>${r.edition}</td></tr>`,
+          )
+          .join("");
+
+        document.getElementById("s2-inactive-tbody").innerHTML = inactiveUsers
+          .map(
+            (r) =>
+              `<tr><td>${sn(r.app)}</td><td>${r.company}</td><td>${badgeFor((r.licType || "").toUpperCase(), "licType")}</td><td>${r.tier}</td><td>${r.product}</td><td>${r.edition}</td></tr>`,
+          )
+          .join("");
+      }
+
+      /* ─────────────────────────────────────────────
+     ANALYTICS
+  ───────────────────────────────────────────── */
+      const globalBillingMap = {};
+      let cloudAppSet = new Set();
+
+      function buildCloudAppSet() {
+        const rows = APP_DATA.rows || [];
+        rows.forEach((r) => {
+          if (!globalBillingMap[r.label])
+            globalBillingMap[r.label] = { annual: 0 };
+          if ((r.billing || "") === "ANNUAL")
+            globalBillingMap[r.label].annual++;
+        });
+        cloudAppSet = new Set(
+          Object.keys(globalBillingMap).filter(
+            (l) => globalBillingMap[l].annual === 0,
+          ),
+        );
+      }
+
+      function populateAnAppDropdown() {
+        const sel = document.getElementById("an-filterApp");
+        sel.innerHTML =
+          '<option value="all">All</option>' +
+          [...cloudAppSet]
+            .sort()
+            .map((l) => `<option value="${l}">${sn(l)}</option>`)
+            .join("");
+      }
+
+      function filteredAnalytics() {
+        const prod = document.getElementById("an-filterProd").value;
+        const appLabel = document.getElementById("an-filterApp").value;
+        const query = document
+          .getElementById("an-tableSearch")
+          .value.toLowerCase();
+        return (APP_DATA.rows || []).filter((r) => {
+          if (!cloudAppSet.has(r.label)) return false;
+          if (prod !== "all" && r.product !== prod) return false;
+          if (appLabel !== "all" && r.label !== appLabel) return false;
+          if (
+            query &&
+            !r.company.toLowerCase().includes(query) &&
+            !r.label.toLowerCase().includes(query)
+          )
+            return false;
+          return true;
+        });
+      }
+
+      function renderAnalytics(rows) {
+        ["an-cloudChart", "an-editionChart"].forEach(destroyChart);
+
+        const monthly = rows.filter((r) => r.billing === "MONTHLY").length;
+        const free = rows.filter(
+          (r) => !r.billing && (r.licType || "").toUpperCase() !== "COMMERCIAL",
+        ).length;
+        const prem = rows.filter((r) => r.edition === "Premium").length;
+        const apps = new Set(rows.map((r) => r.label)).size;
+
+        document.getElementById("an-metrics").innerHTML = [
+          ["Monthly billing", monthly, "MONTHLY licenses"],
+          ["Free tier", free, "free licenses"],
+          [
+            "Premium edition",
+            prem,
+            `${Math.round((prem / (rows.length || 1)) * 100)}% of filtered`,
+          ],
+          ["Unique apps", apps, "cloud products"],
+        ]
+          .map(
+            ([l, v, s]) =>
+              `<div class="metric">
+        <div class="metric-label">${l}</div>
+        <div class="metric-value">${v}</div>
+        <div class="metric-sub">${s}</div>
+      </div>`,
+          )
+          .join("");
+
+        const cloudMap = {};
+        rows.forEach((r) => {
+          if (!cloudMap[r.label]) cloudMap[r.label] = { total: 0 };
+          cloudMap[r.label].total++;
+        });
+        const cloudLabels = Object.keys(cloudMap).sort(
+          (a, b) => cloudMap[b].total - cloudMap[a].total,
+        );
+
+        document.getElementById("an-cloud-pills").innerHTML =
+          `<div class="pill"><div class="pill-dot" style="background:#378ADD"></div><div class="pill-body"><span class="pill-count">${cloudLabels.length}</span><span class="pill-label">Cloud apps</span></div></div>` +
+          `<div class="pill"><div class="pill-dot" style="background:#1D9E75"></div><div class="pill-body"><span class="pill-count">${rows.length}</span><span class="pill-label">Total licenses</span></div></div>`;
+
+        document.getElementById("an-cloud-app-tags").innerHTML =
+          cloudLabels
+            .map((a) => `<span class="app-tag">${sn(a)}</span>`)
+            .join("") ||
+          '<span style="font-size:12px;color:var(--txt-muted)">None</span>';
+
+        document.getElementById("an-cloudWrap").style.height =
+          Math.max(160, cloudLabels.length * 38 + 40) + "px";
+
+        mkLegend(
+          "an-leg-cloud",
+          [`Cloud apps (${cloudLabels.length})`],
+          ["#378ADD"],
+        );
+        allCharts["an-cloudChart"] = new Chart(
+          document.getElementById("an-cloudChart"),
+          {
+            type: "bar",
+            data: {
+              labels: cloudLabels.map(sn),
+              datasets: [
+                {
+                  data: cloudLabels.map((l) => cloudMap[l].total),
+                  backgroundColor: "#378ADD",
+                  borderRadius: 3,
+                },
+              ],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: {
+                  grid: { color: "rgba(128,128,128,.1)" },
+                  ticks: { font: { size: 10 } },
+                },
+                y: { ticks: { font: { size: 10 } } },
+              },
+            },
+          },
+        );
+
+        const ec = cnt(rows, "edition"),
+          el = Object.keys(ec).sort(),
+          ev = el.map((k) => ec[k]);
+        mkLegend("an-leg-edition", el, [
+          "#7F77DD",
+          "#378ADD",
+          "#888780",
+          "#1D9E75",
+        ]);
+        allCharts["an-editionChart"] = new Chart(
+          document.getElementById("an-editionChart"),
+          {
+            type: "bar",
+            data: {
+              labels: el,
+              datasets: [
+                {
+                  data: ev,
+                  backgroundColor: ["#7F77DD", "#378ADD", "#888780", "#1D9E75"],
+                  borderRadius: 4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { y: { grid: { color: "rgba(128,128,128,.1)" } } },
+            },
+          },
+        );
+
+        document.getElementById("an-licTbody").innerHTML = rows
+          .slice(0, 200)
+          .map(
+            (r) =>
+              `<tr>
+        <td>${r.company}</td>
+        <td>${sn(r.label)}</td>
+        <td>${badgeFor((r.licType || "").toUpperCase(), "licType")}</td>
+        <td>${badgeFor(r.status, "status")}</td>
+        <td>${r.product}</td>
+        <td>${r.edition}</td>
+      </tr>`,
+          )
+          .join("");
+        document.getElementById("an-tableCount").textContent =
+          `Showing ${Math.min(rows.length, 200)} of ${rows.length} records`;
+      }
+
+      /* ─────────────────────────────────────────────
+     CHURN TABLE
+  ───────────────────────────────────────────── */
+      function renderChurnTable() {
+        const query = document
+          .getElementById("an-tableSearch2")
+          .value.toLowerCase();
+        const filtered = (APP_DATA.churnedCustomers || []).filter(
+          (r) =>
+            (r.company || "").toLowerCase().includes(query) ||
+            (r.appName || "").toLowerCase().includes(query),
+        );
+        document.getElementById("an-churnTbody").innerHTML = filtered
+          .map(
+            (r) =>
+              `<tr>
+        <td style="max-width:200px;">${sn(r.appName || "")}</td>
+        <td>${r.company || ""}</td>
+        <td>${r.country || ""}</td>
+        <td style="font-size:11px;color:var(--txt-muted);">${r.technicalContact || ""}</td>
+        <td><a href="https://${r.cloudSiteHostname}" target="_blank" style="color:var(--accent);text-decoration:none;">${r.cloudSiteHostname || ""}</a></td>
+        <td>${r.startDate || ""}</td>
+      </tr>`,
+          )
+          .join("");
+        document.getElementById("an-churnTableCount").textContent =
+          `Showing ${filtered.length} churned records`;
+      }
+
+      /* ─────────────────────────────────────────────
+     OVERVIEW FILTER
+  ───────────────────────────────────────────── */
+      function ovFiltered() {
+        const s = document
+          .getElementById("ov-filterStatus")
+          .value.toLowerCase();
+        const t = document.getElementById("ov-filterType").value.toUpperCase();
+        return (APP_DATA.rows || []).filter((r) => {
+          const matchStatus =
+            s === "all" || (r.status || "").toLowerCase() === s;
+          const matchType =
+            t === "ALL" || (r.licType || "").toUpperCase() === t;
+          return matchStatus && matchType;
+        });
+      }
+
+      /* ─────────────────────────────────────────────
+     BOOTSTRAP CHARTS (called after login)
+  ───────────────────────────────────────────── */
+      function bootstrapCharts() {
+        buildCloudAppSet();
+
+        document
+          .getElementById("ov-filterStatus")
+          .addEventListener("change", () => {
+            const r = ovFiltered();
+            renderOverviewMetrics(r);
+            renderOverviewCharts(r);
+          });
+        document
+          .getElementById("ov-filterType")
+          .addEventListener("change", () => {
+            const r = ovFiltered();
+            renderOverviewMetrics(r);
+            renderOverviewCharts(r);
+          });
+
+        populateAnAppDropdown();
+        document
+          .getElementById("an-filterProd")
+          .addEventListener("change", () =>
+            renderAnalytics(filteredAnalytics()),
+          );
+        document
+          .getElementById("an-filterApp")
+          .addEventListener("change", () =>
+            renderAnalytics(filteredAnalytics()),
+          );
+        document
+          .getElementById("an-tableSearch")
+          .addEventListener("input", () =>
+            renderAnalytics(filteredAnalytics()),
+          );
+        document
+          .getElementById("an-tableSearch2")
+          .addEventListener("input", renderChurnTable);
+
+        console.log(JSON.stringify(APP_DATA, null, 2))
+
+        renderOverviewMetrics(APP_DATA.rows || []);
+        renderOverviewCharts(APP_DATA.rows || []);
+        renderS2Charts();
+        renderAnalytics(filteredAnalytics());
+        renderChurnTable();
+      }
+
+      /* ─────────────────────────────────────────────
+     MISC UI
+  ───────────────────────────────────────────── */
+      function switchTab(tab) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById("tab-" + tab).classList.add("active");
+        document.getElementById("panel-" + tab).classList.add("active");
+      }
+
+      document.getElementById("themeBtn").addEventListener("click", () => {
+        document.documentElement.dataset.theme =
+          document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      });
+    </script>
+  </body>
+</html>
