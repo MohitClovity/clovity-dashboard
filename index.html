@@ -1023,65 +1023,13 @@
             </svg>
           </div>
           <h2>AGC Data</h2>
-          <p>AGC-related overview, analytics, and trends will appear here.</p>
+          <p>As of now, there are no active installations of the AGC application across users.</p>
         </div>
       </div>
     </div>
     <!-- /dashboard-content -->
 
     <script>
-      /* =============================================================
-     ██████╗  ██████╗  ██████╗ ██████╗ ██╗     ███████╗
-     ██╔════╝ ██╔═══██╗██╔═══██╗██╔════╝ ██║     ██╔════╝
-     ██║  ███╗██║   ██║██║   ██║██║  ███╗██║     █████╗
-     ██║   ██║██║   ██║██║   ██║██║   ██║██║     ██╔══╝
-     ╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝███████╗███████╗
-
-     HOW THIS WORKS:
-     ═══════════════
-     ① Credentials and data live in Google Sheets (NOT here)
-     ② On login, this page calls your Google Apps Script Web App
-     ③ Apps Script checks credentials in Sheet "Users" tab
-     ④ If valid, it returns the dashboard data from Sheet "Data" tab
-     ⑤ Data is only loaded AFTER login — nothing is visible in source
-
-     SETUP STEPS:
-     ════════════
-     STEP 1 — Create a Google Sheet with two tabs:
-
-       Tab 1: "Users"
-       ┌───────────┬──────────────────┬───────────────┬────────┐
-       │ username  │ password         │ name          │ role   │
-       ├───────────┼──────────────────┼───────────────┼────────┤
-       │ admin     │ ClovityAdmin2026 │ Clovity Admin │ admin  │
-       │ john.doe  │ JohnPass@123     │ John Doe      │ viewer │
-       └───────────┴──────────────────┴───────────────┴────────┘
-
-       Tab 2: "Rows" (your main license data)
-       Columns: company, label, product, edition, billing,
-                licType, status, region, country, tier
-
-       Tab 3: "ActiveUsers"
-       Columns: app, company, licType, tier, product, edition
-
-       Tab 4: "InactiveUsers"
-       Columns: app, company, licType, tier, product, edition
-
-       Tab 5: "ChurnedCustomers"
-       Columns: appName, company, country, technicalContact,
-                cloudSiteHostname, startDate
-
-     STEP 2 — Create a Google Apps Script:
-       • Open your Google Sheet → Extensions → Apps Script
-       • Paste the code from the APPS SCRIPT SECTION below
-       • Click Deploy → New Deployment
-       • Type: Web App
-       • Execute as: Me
-       • Who has access: Anyone
-       • Copy the Web App URL
-
-     STEP 3 — Paste your URL below:
-  ============================================================= */
 
       const GOOGLE_SCRIPT_URL ="https://script.google.com/macros/s/AKfycbwuMM_D7MIR4P05VHav4r0hDg-0ScqxOdsM28RHctiRZIzIk6xCUl9JvtL00PpvQV8w/exec";
 
