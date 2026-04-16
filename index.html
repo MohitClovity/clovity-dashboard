@@ -1161,11 +1161,12 @@
       let allCharts = {};
 
       const SHORT_NAMES = {
-        "Content Formatting Macros: Tabs Navigation Visibility CSS":"Content Formatting Macros",
-        "Dashboard Templates, Charts, Graphs & Reports for Jira":"Dashboard Templates",
-        "Reports, Charts, Templates,CQL & Export for Confluence":"Reports, Charts & CQL",
-        "Time Tracking, Resource Planning & Project Management":"Time Tracking",
-      };
+  "Content Formatting Macros: Tabs Navigation Visibility CSS": "Content Formatting Macros",
+  "Dashboard Templates, Charts, Graphs & Reports for Jira": "Dashboard Templates",
+  "Reports, Charts, Templates,CQL & Export for Confluence": "Reports & Charts",   // no space
+  "Reports, Charts, Templates, CQL & Export for Confluence": "Reports & Charts",  // with space
+  "Time Tracking, Resource Planning & Project Management": "Time Tracking",
+};
       const sn = (n) => SHORT_NAMES[n] || n;
       const COLORS = [
         "#378ADD",
@@ -1442,7 +1443,7 @@
         );
 
         const sc = cnt(rows, "status"),
-          sl = Object.keys(sc),
+          sl = Object.keys(sc).map(s => s.charAt(0).toUpperCase() + s.slice(1));
           sv = Object.values(sc);
         const sColors = sl.map((l) =>
           l.toLowerCase() === "active" ? "#1D9E75" : "#E24B4A",
