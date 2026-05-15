@@ -1652,7 +1652,7 @@
       { type: "bar", data: { labels: aL, datasets: [{ data: aV, backgroundColor: COLORS.slice(0, aL.length), borderRadius: 5 }] }, 
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales } });
       allCharts["ov-s2inactiveChart"] = new Chart(document.getElementById("ov-s2inactiveChart"), 
-      { type: "bar", data: { labels: iL, datasets: [{ data: iV, backgroundColor:  , borderRadius: 5 }] }, 
+      { type: "bar", data: { labels: iL, datasets: [{ data: iV, backgroundColor: COLORS.slice(0, aL.length) , borderRadius: 5 }] }, 
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales } });
 
       // Set allData (source of truth) and apply any existing date filters
