@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Clovity Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <link rel="icon" type="image/png" href="/clovity-dashboard/fav_icon/favicon_clovity.png">
   <style>
     *,
     *::before,
@@ -944,11 +945,11 @@
     </div>
     <div class="date-popup-row">
       <label>From</label>
-      <input type="date" id="date-from" />
+      <input type="date" id="date-from" onclick="try{this.showPicker()}catch(e){}"  />
     </div>
     <div class="date-popup-row">
       <label>To</label>
-      <input type="date" id="date-to" />
+      <input type="date" id="date-to" onclick="try{this.showPicker()}catch(e){}"  />
     </div>
     <div class="date-popup-actions">
       <button class="date-popup-reset" onclick="resetDateFilter()">Reset</button>
@@ -1105,6 +1106,7 @@
         <div class="card section-gap">
           <h3 class="card-title" style="margin-bottom:.6rem">Active Users — Detail</h3>
           <div class="table-toolbar">
+            <input type="text" id="an-tableSearch" placeholder="Search company or app…" />
             <button class="date-filter-btn" id="dfbtn-active" onclick="openDatePopup('active', this)">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="1" y="2" width="14" height="13" rx="2" />
@@ -1143,6 +1145,7 @@
         <div class="card section-gap">
           <h3 class="card-title" style="margin-bottom:.6rem">Inactive Users — Detail</h3>
           <div class="table-toolbar">
+            <input type="text" id="an-tableSearch" placeholder="Search company or app…" />
             <button class="date-filter-btn" id="dfbtn-inactive" onclick="openDatePopup('inactive', this)">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="1" y="2" width="14" height="13" rx="2" />
@@ -1652,7 +1655,7 @@
       { type: "bar", data: { labels: aL, datasets: [{ data: aV, backgroundColor: COLORS.slice(0, aL.length), borderRadius: 5 }] }, 
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales } });
       allCharts["ov-s2inactiveChart"] = new Chart(document.getElementById("ov-s2inactiveChart"), 
-      { type: "bar", data: { labels: iL, datasets: [{ data: iV, backgroundColor:  , borderRadius: 5 }] }, 
+      { type: "bar", data: { labels: iL, datasets: [{ data: iV, backgroundColor: COLORS.slice(0, iL.length), borderRadius: 5 }] }, 
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales } });
 
       // Set allData (source of truth) and apply any existing date filters
